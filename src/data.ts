@@ -366,8 +366,8 @@ export const faqs = [
 ];
 
 export const contactInfo = [
-  { icon: 'Mail', label: 'Email', value: 'hello@codraze.com', href: 'mailto:saadali.it@gmail.com' },
-  { icon: 'Phone', label: 'Phone', value: '+1 (555) 012-3456', href: 'tel:+9231725977' },
+  { icon: 'Mail', label: 'Email', value: 'saadali.it@gmail.com.com', href: 'mailto:saadali.it@gmail.com' },
+  { icon: 'Phone', label: 'Phone', value: '+92 317 25977', href: 'tel:+9231725977' },
   { icon: 'MapPin', label: 'Location', value: 'Remote · Worldwide', href: '#' },
 ];
 
