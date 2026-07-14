@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Dark theme (default) — elegant dark gray ===== */
+:root,
+.dark {
+  --surface-base: 15 18 25;       /* #0f1219 */
+  --surface-alt: 21 24 33;        /* #151821 */
+  --surface-raised: 28 32 42;     /* #1c202a */
+  --surface-card: 24 28 38;       /* #181c26 */
+  --surface-hover: 38 43 56;       /* #262b38 */
+  --ink: 203 213 224;             /* slate-300 */
+  --ink-strong: 248 250 252;     /* slate-50 */
+  --ink-muted: 148 163 184;       /* slate-400 */
+  --ink-faint: 100 116 139;       /* slate-500 */
+  --edge: 255 255 255;
+  --edge-strong: 255 255 255;
+  --grid-opacity: 0.035;
+  --shadow-color: 0 0 0;
+}
+
+/* ===== Light theme — white / off-white / light gray ===== */
+.light {
+  --surface-base: 255 255 255;     /* #FFFFFF */
+  --surface-alt: 248 249 250;     /* #F8F9FA */
+  --surface-raised: 245 245 245; /* #F5F5F5 */
+  --surface-card: 255 255 255;    /* #FFFFFF */
+  --surface-hover: 241 243 245;   /* #F1F3F5 */
+  --ink: 51 65 85;                /* slate-700 */
+  --ink-strong: 15 23 42;         /* slate-900 */
+  --ink-muted: 100 116 139;       /* slate-500 */
+  --ink-faint: 148 163 184;       /* slate-400 */
+  --edge: 15 23 42;
+  --edge-strong: 15 23 42;
+  --grid-opacity: 0.022;
+  --shadow-color: 15 23 42;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-surface-base text-ink font-sans antialiased;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+  ::selection {
+    @apply bg-blaze-500/25 text-ink-strong;
+  }
+}
+
+@layer components {
+  .container-px {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+  .section-pad {
+    @apply py-20 sm:py-24 lg:py-28;
+  }
+  .section-alt {
+    @apply bg-surface-alt;
+  }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-blaze-500/30 bg-blaze-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-blaze-600 dark:text-blaze-300;
+  }
+  .heading-xl {
+    @apply font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-ink-strong sm:text-5xl lg:text-6xl;
+  }
+  .heading-lg {
+    @apply font-display text-3xl font-bold leading-tight tracking-tight text-ink-strong sm:text-4xl lg:text-[2.75rem];
+  }
+  .heading-md {
+    @apply font-display text-2xl font-bold tracking-tight text-ink-strong sm:text-3xl;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-blaze-500 to-blaze-700 bg-clip-text text-transparent dark:from-blaze-400 dark:to-blaze-600;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blaze-500 to-blaze-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blaze-600/25 transition-all duration-300 hover:from-blaze-400 hover:to-blaze-500 hover:shadow-blaze-500/40 hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-edge/15 bg-edge/5 px-6 py-3.5 text-sm font-semibold text-ink-strong backdrop-blur transition-all duration-300 hover:border-blaze-500/50 hover:bg-edge/10 hover:-translate-y-0.5;
+  }
+  .card {
+    @apply rounded-2xl border border-edge/10 bg-surface-card transition-all duration-300;
+  }
+  .dark .card {
+    @apply border-white/10;
+  }
+  .card-hover {
+    @apply hover:border-blaze-500/40 hover:-translate-y-1.5;
+  }
+  .dark .card-hover {
+    @apply hover:shadow-2xl hover:shadow-black/40;
+  }
+  .light .card-hover {
+    @apply hover:shadow-xl hover:shadow-slate-300/40;
+  }
+  .light .card {
+    @apply shadow-sm shadow-slate-200/60;
+  }
+}
+
+@layer utilities {
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, currentColor 1px, transparent 1px),
+      linear-gradient(to bottom, currentColor 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--surface-base));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--surface-hover));
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--surface-base));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff5a14;
+}

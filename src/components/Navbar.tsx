@@ -1,0 +1,135 @@
+import { useEffect, useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Menu, X, Flame, ArrowRight } from 'lucide-react';
+import { navLinks } from '../data';
+import ThemeToggle from './ui/ThemeToggle';
+
+export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
+  return (
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'border-b border-edge/10 bg-surface-base/80 backdrop-blur-xl'
+          : 'border-b border-transparent bg-transparent'
+      }`}
+    >
+      <nav className="container-px flex h-16 items-center justify-between lg:h-20">
+        {/* Logo */}
+        <Link to="/" className="group flex items-center gap-2.5">
+          <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blaze-500 to-blaze-700 shadow-lg shadow-blaze-600/30 transition-transform group-hover:scale-105">
+            <Flame className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </span>
+          <span className="text-lg font-extrabold tracking-tight text-ink-strong">
+            Cod<span className="text-gradient">raze</span>
+          </span>
+        </Link>
+
+        {/* Desktop nav */}
+        <ul className="hidden items-center gap-0.5 lg:flex">
+          {navLinks.map((l) => (
+            <li key={l.to}>
+              <NavLink
+                to={l.to}
+                end={l.to === '/'}
+                className={({ isActive }) =>
+                  `relative rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-blaze-600 dark:text-blaze-400'
+                      : 'text-ink-muted hover:text-ink-strong'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {l.label}
+                    {isActive && (
+                      <span className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-blaze-500" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        {/* Desktop right */}
+        <div className="hidden items-center gap-2.5 lg:flex">
+          <ThemeToggle />
+          <Link to="/contact" className="btn-primary">
+            Start Your Project
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Mobile right */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle />
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-edge/10 bg-edge/5 text-ink-strong"
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile drawer */}
+      <div
+        className={`overflow-hidden border-t border-edge/10 bg-surface-base/95 backdrop-blur-xl transition-all duration-300 lg:hidden ${
+          open ? 'max-h-[600px]' : 'max-h-0'
+        }`}
+      >
+        <ul className="container-px flex flex-col gap-1 py-4">
+          {navLinks.map((l, i) => (
+            <li
+              key={l.to}
+              style={{ animationDelay: `${i * 40}ms` }}
+              className={open ? 'animate-slide-in-left' : ''}
+            >
+              <NavLink
+                to={l.to}
+                end={l.to === '/'}
+                className={({ isActive }) =>
+                  `block rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blaze-500/10 text-blaze-600 dark:text-blaze-400'
+                      : 'text-ink-muted hover:bg-edge/5 hover:text-ink-strong'
+                  }`
+                }
+              >
+                {l.label}
+              </NavLink>
+            </li>
+          ))}
+          <li className="mt-2">
+            <Link to="/contact" className="btn-primary w-full">
+              Start Your Project
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </li>
+        </ul>
+      </div>
+    </header>
+  );
+}
