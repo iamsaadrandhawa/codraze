@@ -29,11 +29,9 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('codraze-theme');
-          if (t === 'light' || t === 'dark') {
-            document.documentElement.classList.remove('dark', 'light');
-            document.documentElement.classList.add(t);
-          }
+          var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.remove('dark', 'light');
+          document.documentElement.classList.add(dark ? 'dark' : 'light');
         } catch (e) {}
       })();
     </script>

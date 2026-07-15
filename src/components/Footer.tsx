@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Flame, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { footerLinks, socials, icons } from '../data';
 
 export default function Footer() {

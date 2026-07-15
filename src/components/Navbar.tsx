@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, Flame, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { navLinks } from '../data';
-import ThemeToggle from './ui/ThemeToggle';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -82,7 +81,6 @@ export default function Navbar() {
 
         {/* Desktop right */}
         <div className="hidden items-center gap-2.5 lg:flex">
-          <ThemeToggle />
           <Link to="/contact" className="btn-primary">
             Start Your Project
             <ArrowRight className="h-4 w-4" />
@@ -91,7 +89,6 @@ export default function Navbar() {
 
         {/* Mobile right */}
         <div className="flex items-center gap-2 lg:hidden">
-          <ThemeToggle />
           <button
             onClick={() => setOpen((v) => !v)}
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-edge/10 bg-edge/5 text-ink-strong"

@@ -22,10 +22,7 @@ export const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Services', to: '/services' },
-  { label: 'Portfolio', to: '/portfolio' },
-  { label: 'Pricing', to: '/pricing' },
   { label: 'Blog', to: '/blog' },
-  { label: 'FAQ', to: '/faq' },
   { label: 'Contact', to: '/contact' },
 ];
 
