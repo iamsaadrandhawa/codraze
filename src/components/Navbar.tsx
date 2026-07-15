@@ -35,14 +35,16 @@ export default function Navbar() {
     >
       <nav className="container-px flex h-16 items-center justify-between lg:h-20">
         {/* Logo */}
-        <Link to="/" className="group flex items-center gap-2.5">
-          <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blaze-500 to-blaze-700 shadow-lg shadow-blaze-600/30 transition-transform group-hover:scale-105">
-            <Flame className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </span>
-          <span className="text-lg font-extrabold tracking-tight text-ink-strong">
-            Cod<span className="text-gradient">raze</span>
-          </span>
-        </Link>
+       <Link to="/" className="group flex items-center gap-2.5">
+  <img
+    src="/logo.png"
+    alt="Codraze Logo"
+    className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-105"
+  />
+  <span className="text-lg font-extrabold tracking-tight text-ink-strong">
+    Cod<span className="text-gradient">raze</span>
+  </span>
+</Link>
 
         {/* Desktop nav */}
         <ul className="hidden items-center gap-0.5 lg:flex">
