@@ -133,12 +133,17 @@ export default function Navbar() {
               </NavLink>
             </li>
           ))}
-          <li className="mt-2">
-            <Link to="/contact" className="btn-primary w-full">
-              Start Your Project
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </li>
+         <li className="mt-2">
+  <a
+    href="https://wa.me/9231725977"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn-primary flex w-full items-center justify-center gap-2"
+  >
+    <MessageCircle className="h-4 w-4" />
+    Quick Chat
+  </a>
+</li>
         </ul>
       </div>
     </header>
