@@ -35,15 +35,15 @@ export default function Navbar() {
     >
       <nav className="container-px flex h-16 items-center justify-between lg:h-20">
         {/* Logo */}
-       <Link to="/" className="group flex items-center gap-2.5">
+      <Link
+  to="/"
+  className="group inline-flex items-center rounded-2xl px-2 py-1.5 transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-800/50"
+>
   <img
     src="/logo.png"
-    alt="Codraze Logo"
-    className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-105"
+    alt="Codraze"
+    className="h-12 w-auto object-contain drop-shadow-md transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_8px_20px_rgba(249,115,22,0.35)]"
   />
-  <span className="text-lg font-extrabold tracking-tight text-ink-strong">
-    Cod<span className="text-gradient">raze</span>
-  </span>
 </Link>
 
         {/* Desktop nav */}
