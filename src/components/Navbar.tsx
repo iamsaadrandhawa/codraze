@@ -49,9 +49,6 @@ export default function Navbar() {
     <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
       Cod<span className="text-orange-500">raze</span>
     </h1>
-    <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-slate-500">
-      Software Solutions
-    </p>
   </div>
 </Link>
 
