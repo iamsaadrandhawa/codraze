@@ -37,13 +37,22 @@ export default function Navbar() {
         {/* Logo */}
       <Link
   to="/"
-  className="group inline-flex items-center rounded-2xl px-2 py-1.5 transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-800/50"
+  className="group inline-flex items-center gap-3 rounded-2xl px-2 py-1.5 transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-800/50"
 >
   <img
     src="/logo.png"
-    alt="Codraze"
-    className="h-12 w-auto object-contain drop-shadow-md transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_8px_20px_rgba(249,115,22,0.35)]"
+    alt="Codraze Logo"
+    className="h-11 w-11 object-contain drop-shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-2"
   />
+
+  <div className="leading-none">
+    <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+      Cod<span className="text-orange-500">raze</span>
+    </h1>
+    <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-slate-500">
+      Software Solutions
+    </p>
+  </div>
 </Link>
 
         {/* Desktop nav */}
