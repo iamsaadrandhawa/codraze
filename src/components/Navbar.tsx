@@ -80,12 +80,19 @@ export default function Navbar() {
         </ul>
 
         {/* Desktop right */}
-        <div className="hidden items-center gap-2.5 lg:flex">
-          <Link to="/contact" className="btn-primary">
-            Start Your Project
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        import { MessageCircle } from "lucide-react";
+
+<div className="hidden items-center gap-2.5 lg:flex">
+  <a
+    href="https://wa.me/9231725977"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn-primary"
+  >
+    <MessageCircle className="h-4 w-4" />
+    Quick Chat
+  </a>
+</div>
 
         {/* Mobile right */}
         <div className="flex items-center gap-2 lg:hidden">
