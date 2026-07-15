@@ -83,14 +83,12 @@ export default function Navbar() {
 
 <div className="hidden items-center gap-2.5 lg:flex">
   <a
-    href="https://wa.me/9231725977"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="btn-primary"
-  >
-    <MessageCircle className="h-4 w-4" />
-    Quick Chat
-  </a>
+                href="https://wa.me/+923171725977"
+                className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-500/15 hover:-translate-y-0.5 dark:text-emerald-300"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Quick Chat
+              </a>
 </div>
 
         {/* Mobile right */}
@@ -135,14 +133,12 @@ export default function Navbar() {
           ))}
          <li className="mt-2">
   <a
-    href="https://wa.me/9231725977"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="btn-primary flex w-full items-center justify-center gap-2"
-  >
-    <MessageCircle className="h-4 w-4" />
-    Quick Chat
-  </a>
+                href="https://wa.me/+923171725977"
+                className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-500/15 hover:-translate-y-0.5 dark:text-emerald-300"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Quick Chat 
+              </a>
 </li>
         </ul>
       </div>
