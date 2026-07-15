@@ -11,14 +11,29 @@ export default function Footer() {
         <div className="grid gap-10 lg:grid-cols-5">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blaze-500 to-blaze-700 shadow-lg shadow-blaze-600/30">
-                <Flame className="h-5 w-5 text-white" strokeWidth={2.5} />
-              </span>
-              <span className="text-lg font-extrabold tracking-tight text-ink-strong">
-                Cod<span className="text-gradient">raze</span>
-              </span>
-            </Link>
+            <Link
+  to="/"
+  className="group inline-flex items-center gap-3 rounded-xl px-2 py-1.5 transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-800/50"
+>
+  {/* Logo */}
+  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-slate-800 shadow-md ring-1 ring-slate-200 dark:ring-slate-700 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_8px_24px_rgba(249,115,22,0.25)]">
+    <img
+      src="/logo.png"
+      alt="Codraze Logo"
+      className="h-8 w-8 object-contain"
+    />
+  </div>
+
+  {/* Brand Name */}
+  <div className="leading-none">
+    <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white transition-colors duration-300">
+      Cod
+      <span className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 bg-clip-text text-transparent">
+        raze
+      </span>
+    </h1>
+  </div>
+</Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-muted">
               Fast, powerful software solutions — development, networking, and training. Built by
               engineers who ship.
