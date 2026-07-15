@@ -185,7 +185,7 @@ export default function Contact() {
               })}
 
               <a
-                href="https://wa.me/+923171725977"
+                 href="https://wa.me/923171725977?text=Hello!%20I'm%20looking%20for%20a%20reliable%20software%20development%20company%20to%20help%20bring%20my%20idea%20to%20life.%20I'm%20interested%20in%20discussing%20my%20project%20requirements%20and%20finding%20the%20best%20solution%20based%20on%20my%20business%20needs.%20My%20priority%20is%20building%20a%20high-quality%20product%20that%20delivers%20real%20value%20and%20a%20great%20user%20experience.%20Please%20let%20me%20know%20a%20convenient%20time%20to%20discuss%20my%20project.%20Thank%20you!"
                 className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-500/15 hover:-translate-y-0.5 dark:text-emerald-300"
               >
                 <MessageCircle className="h-5 w-5" />
