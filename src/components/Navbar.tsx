@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, MessageCircle } from 'lucide-react';
 import { navLinks } from '../data';
 
 export default function Navbar() {
@@ -79,8 +79,7 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Desktop right */}
-        import { MessageCircle } from "lucide-react";
+      
 
 <div className="hidden items-center gap-2.5 lg:flex">
   <a
