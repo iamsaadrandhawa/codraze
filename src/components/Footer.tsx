@@ -81,7 +81,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-edge/10 pt-6 sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-center gap-3 border-t border-edge/10 pt-6 sm:flex-row">
           <p className="text-xs text-ink-faint">
             © {new Date().getFullYear()} Codraze. All rights reserved.
           </p>
