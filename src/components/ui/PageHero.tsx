@@ -31,12 +31,7 @@ export default function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
               {subtitle}
             </p>
           )}
-          <div className="mt-8 flex justify-center">
-            <Link to="/contact" className="btn-primary">
-              Get In Touch
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+          
         </div>
       </div>
     </section>

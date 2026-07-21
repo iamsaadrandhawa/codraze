@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, MessageCircle } from 'lucide-react';
 import { navLinks } from '../data';
 
 export default function Navbar() {
@@ -81,10 +81,15 @@ export default function Navbar() {
 
         {/* Desktop right */}
         <div className="hidden items-center gap-2.5 lg:flex">
-          <Link to="/contact" className="btn-primary">
-            Start Your Project
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <a
+                href="https://wa.me/923171725977?text=Hello%20Codraze!%20I%20am%20interested%20in%20your%20services.%20Please%20share%20more%20details."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/30 bg-emerald-500/30 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-500/15 hover:-translate-y-0.5 dark:text-emerald-300"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Chat on WhatsApp
+              </a>
         </div>
 
         {/* Mobile right */}
@@ -128,10 +133,15 @@ export default function Navbar() {
             </li>
           ))}
           <li className="mt-2">
-            <Link to="/contact" className="btn-primary w-full">
-              Start Your Project
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+             <a
+                href="https://wa.me/923171725977?text=Hello%20Codraze!%20I%20am%20interested%20in%20your%20services.%20Please%20share%20more%20details."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/30 bg-emerald-500/30 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-500/15 hover:-translate-y-0.5 dark:text-emerald-300"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Chat on WhatsApp
+              </a>
           </li>
         </ul>
       </div>
