@@ -9,6 +9,7 @@ interface BlogCardProps {
   date: string;
   category: string;
   readTime: string;
+  slug?: string;
   delay?: number;
 }
 
@@ -19,6 +20,7 @@ export default function BlogCard({
   date,
   category,
   readTime,
+  slug,
   delay = 0,
 }: BlogCardProps) {
   return (
@@ -57,7 +59,7 @@ export default function BlogCard({
         <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">{excerpt}</p>
 
         <Link
-          to="/blog"
+          to={slug ? `/blog/${slug}` : '/blog'}
           className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blaze-600 transition-colors hover:text-blaze-500 dark:text-blaze-400 dark:hover:text-blaze-300"
         >
           Read More

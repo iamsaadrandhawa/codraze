@@ -2,12 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { ArrowRight, Check, MessageCircle } from 'lucide-react';
 import { contactInfo, icons } from '../data';
 import PageHero from '../components/ui/PageHero';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { supabase } from '../lib/supabase';
 
 const services = [
   'Software Development',
@@ -26,6 +21,7 @@ export default function Contact() {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
     message: '',
     service: services[0],
   });
@@ -36,17 +32,17 @@ export default function Contact() {
     setStatus('submitting');
 
     try {
-      const { error } = await supabase.from('codraze_leads').insert({
-        name: form.name,
-        email: form.email,
-        message: form.message,
-        service_interest: form.service,
+      const { error } = await supabase.from('contact_submissions').insert({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || null,
+        message: `${form.message}${form.service ? `\n\nService of interest: ${form.service}` : ''}`,
       });
 
       if (error) throw error;
 
       setStatus('success');
-      setForm({ name: '', email: '', message: '', service: services[0] });
+      setForm({ name: '', email: '', phone: '', message: '', service: services[0] });
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err) {
       console.error(err);
@@ -101,6 +97,20 @@ export default function Contact() {
                       className={inputClass}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                    Phone (optional)
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="+1 234 567 890"
+                    className={inputClass}
+                  />
                 </div>
 
                 <div>
