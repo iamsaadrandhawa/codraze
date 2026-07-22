@@ -6,7 +6,9 @@ import {
   CheckCircle, AlertCircle, Database,
   BarChart3, PieChart, TrendingUp,
   MousePointer, Smartphone, Monitor,
-  Chrome, Apple, Terminal, Shield, Layers
+  Chrome, Apple, Terminal, Shield, Layers,
+  ChevronDown, ChevronRight, ExternalLink,
+  Info, User, Link as LinkIcon, Calendar
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatDateTime } from '../../../lib/utils';
@@ -55,6 +57,7 @@ export default function Locations() {
   const [countries, setCountries] = useState<string[]>([]);
   const [devices, setDevices] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'visitors'>('overview');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -64,7 +67,6 @@ export default function Locations() {
     try {
       setLoading(true);
 
-      // Fetch all visitors
       const { data: visitorData, error: visitorError } = await supabase
         .from('visitor_locations')
         .select('*')
@@ -78,7 +80,6 @@ export default function Locations() {
       if (visitorData) {
         setVisitors(visitorData);
 
-        // Calculate stats
         const uniqueIPs = new Set(visitorData.map(v => v.ip_address));
         const countrySet = new Set(visitorData.map(v => v.country).filter(c => c && c !== 'Unknown'));
         const citySet = new Set(visitorData.map(v => v.city).filter(c => c && c !== 'Unknown'));
@@ -125,13 +126,27 @@ export default function Locations() {
     }
   };
 
+  const toggleRow = (id: string) => {
+    setExpandedRow(expandedRow === id ? null : id);
+  };
+
+  const getGoogleMapsUrl = (lat: number, lon: number) => {
+    return `https://www.google.com/maps?q=${lat},${lon}`;
+  };
+
+  const getOpenStreetMapUrl = (lat: number, lon: number) => {
+    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=12`;
+  };
+
   const filteredVisitors = visitors
     .filter(v => {
       const matchesSearch = 
         v.ip_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         v.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         v.country?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.isp?.toLowerCase().includes(searchTerm.toLowerCase());
+        v.isp?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.browser?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.os?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCountry = filterCountry === 'All' || v.country === filterCountry;
       const matchesDevice = filterDevice === 'All' || v.device_type === filterDevice;
       return matchesSearch && matchesCountry && matchesDevice;
@@ -278,9 +293,7 @@ export default function Locations() {
       {/* Overview Tab */}
       {activeTab === 'overview' && stats && (
         <div className="mt-4 space-y-4">
-          {/* Top Countries & Device Breakdown */}
           <div className="grid gap-4 lg:grid-cols-2">
-            {/* Top Countries */}
             <div className="rounded-xl border border-white/10 bg-white/5 p-5">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Globe className="h-4 w-4 text-amber-400" />
@@ -299,7 +312,6 @@ export default function Locations() {
               </div>
             </div>
 
-            {/* Device Breakdown */}
             <div className="rounded-xl border border-white/10 bg-white/5 p-5">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Smartphone className="h-4 w-4 text-purple-400" />
@@ -312,14 +324,10 @@ export default function Locations() {
                     <span className="text-sm font-medium text-white">{count}</span>
                   </div>
                 ))}
-                {Object.keys(stats.deviceBreakdown).length === 0 && (
-                  <p className="text-sm text-slate-500">No data yet</p>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Browser & OS Breakdown */}
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-white/5 p-5">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -333,9 +341,6 @@ export default function Locations() {
                     <span className="text-sm font-medium text-white">{count}</span>
                   </div>
                 ))}
-                {Object.keys(stats.browserBreakdown).length === 0 && (
-                  <p className="text-sm text-slate-500">No data yet</p>
-                )}
               </div>
             </div>
 
@@ -351,14 +356,10 @@ export default function Locations() {
                     <span className="text-sm font-medium text-white">{count}</span>
                   </div>
                 ))}
-                {Object.keys(stats.osBreakdown).length === 0 && (
-                  <p className="text-sm text-slate-500">No data yet</p>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Recent Visitors Preview */}
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
             <div className="flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -432,49 +433,189 @@ export default function Locations() {
             </div>
           </div>
 
-          {/* Visitors Table */}
-          <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+          {/* Results count */}
+          <div className="mt-3 text-xs text-slate-400">
+            Showing {filteredVisitors.length} of {visitors.length} visitors
+          </div>
+
+          {/* Visitors Table with Expandable Rows */}
+          <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/5">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b border-white/10 bg-white/5">
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 w-8"></th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">IP</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Location</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">ISP</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Device</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Browser / OS</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Visited At</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {filteredVisitors.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                      <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
                         No visitors found
                       </td>
                     </tr>
                   ) : (
                     filteredVisitors.map((v) => (
-                      <tr key={v.id} className="transition-colors hover:bg-white/5">
-                        <td className="px-4 py-3 font-mono text-sm text-white">{v.ip_address}</td>
-                        <td className="px-4 py-3">
-                          <div>
-                            <div className="text-sm text-white">{v.city}</div>
-                            <div className="text-xs text-slate-400">{v.country}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-300">{v.isp}</td>
-                        <td className="px-4 py-3 text-sm text-slate-300">{v.device_type}</td>
-                        <td className="px-4 py-3">
-                          <div>
-                            <div className="text-sm text-slate-300">{v.browser}</div>
-                            <div className="text-xs text-slate-500">{v.os}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-400">
-                          {formatDateTime(v.visited_at)}
-                        </td>
-                      </tr>
+                      <>
+                        <tr key={v.id} className="transition-colors hover:bg-white/5">
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleRow(v.id)}
+                              className="text-slate-400 hover:text-white transition-colors"
+                            >
+                              {expandedRow === v.id ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-sm text-white">{v.ip_address}</td>
+                          <td className="px-4 py-3">
+                            <div>
+                              <div className="text-sm text-white">{v.city}</div>
+                              <div className="text-xs text-slate-400">{v.country}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-300 max-w-[150px] truncate">{v.isp}</td>
+                          <td className="px-4 py-3 text-sm text-slate-300">{v.device_type}</td>
+                          <td className="px-4 py-3">
+                            <div>
+                              <div className="text-sm text-slate-300">{v.browser}</div>
+                              <div className="text-xs text-slate-500">{v.os}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-400">
+                            {formatDateTime(v.visited_at)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              {v.latitude && v.longitude && v.latitude !== 0 && v.longitude !== 0 && (
+                                <a
+                                  href={getGoogleMapsUrl(v.latitude, v.longitude)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/20 px-2.5 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                                  title="View on Google Maps"
+                                >
+                                  <MapPin className="h-3 w-3" />
+                                  Map
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {/* Expanded Row */}
+                        {expandedRow === v.id && (
+                          <tr>
+                            <td colSpan={8} className="px-4 py-4 bg-white/5">
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {/* Location Details */}
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" /> Location
+                                  </h4>
+                                  <div className="text-sm text-white">{v.city}, {v.region}</div>
+                                  <div className="text-xs text-slate-400">{v.country} ({v.country_code})</div>
+                                  {v.latitude && v.longitude && v.latitude !== 0 && v.longitude !== 0 && (
+                                    <div className="text-xs text-slate-500">
+                                      Lat: {v.latitude.toFixed(4)}, Lon: {v.longitude.toFixed(4)}
+                                    </div>
+                                  )}
+                                  <div className="text-xs text-slate-500">Timezone: {v.timezone}</div>
+                                </div>
+
+                                {/* ISP Details */}
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                    <Server className="h-3 w-3" /> ISP
+                                  </h4>
+                                  <div className="text-sm text-white">{v.isp}</div>
+                                  <div className="text-xs text-slate-400">Organization: {v.org}</div>
+                                </div>
+
+                                {/* Device Details */}
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                    <Smartphone className="h-3 w-3" /> Device
+                                  </h4>
+                                  <div className="text-sm text-white">{v.device_type}</div>
+                                  <div className="text-xs text-slate-400">Browser: {v.browser}</div>
+                                  <div className="text-xs text-slate-400">OS: {v.os}</div>
+                                </div>
+
+                                {/* Page Details */}
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                    <LinkIcon className="h-3 w-3" /> Page
+                                  </h4>
+                                  <div className="text-xs text-slate-400 truncate">
+                                    <a 
+                                      href={v.page_url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                    >
+                                      {v.page_url}
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  </div>
+                                  <div className="text-xs text-slate-500">Referrer: {v.referrer || 'Direct'}</div>
+                                  <div className="text-xs text-slate-500">Visited: {formatDateTime(v.visited_at)}</div>
+                                  {v.user_agent && (
+                                    <div className="text-xs text-slate-500 truncate" title={v.user_agent}>
+                                      UA: {v.user_agent.substring(0, 50)}...
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* View on Map Buttons */}
+                              {v.latitude && v.longitude && v.latitude !== 0 && v.longitude !== 0 && (
+                                <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-white/10">
+                                  <a
+                                    href={getGoogleMapsUrl(v.latitude, v.longitude)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 text-sm font-medium text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                                  >
+                                    <MapPin className="h-4 w-4" />
+                                    View on Google Maps
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                  <a
+                                    href={getOpenStreetMapUrl(v.latitude, v.longitude)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-sky-500/20 px-3 py-2 text-sm font-medium text-sky-400 hover:bg-sky-500/30 transition-colors"
+                                  >
+                                    <MapPin className="h-4 w-4" />
+                                    View on OpenStreetMap
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        `${v.city}, ${v.country}\nLat: ${v.latitude}, Lon: ${v.longitude}\nIP: ${v.ip_address}`
+                                      );
+                                    }}
+                                    className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/20 transition-colors"
+                                  >
+                                    Copy Location
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ))
                   )}
                 </tbody>
