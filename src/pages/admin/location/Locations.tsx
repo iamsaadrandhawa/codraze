@@ -8,29 +8,8 @@ import {
   MousePointer, Smartphone, Monitor,
   Chrome, Apple, Terminal, Shield, Layers
 } from 'lucide-react';
-
 import { supabase } from '../../../lib/supabase';
 import { formatDateTime } from '../../../lib/utils';
-
-interface AdminLocation {
-  id: string;
-  ip_address: string;
-  local_ip: string;
-  city: string;
-  region: string;
-  country: string;
-  country_code: string;
-  isp: string;
-  org: string;
-  asn: string;
-  timezone: string;
-  latitude: number;
-  longitude: number;
-  postal: string;
-  source: string;
-  last_updated: string;
-  created_at: string;
-}
 
 interface VisitorLocation {
   id: string;
@@ -67,7 +46,6 @@ interface Stats {
 }
 
 export default function Locations() {
-  const [adminLocation, setAdminLocation] = useState<AdminLocation | null>(null);
   const [visitors, setVisitors] = useState<VisitorLocation[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,24 +64,18 @@ export default function Locations() {
     try {
       setLoading(true);
 
-      // Fetch admin location
-      const { data: adminData, error: adminError } = await supabase
-        .from('ip_locations')
-        .select('*')
-        .order('last_updated', { ascending: false })
-        .limit(1);
-
-      if (!adminError && adminData && adminData.length > 0) {
-        setAdminLocation(adminData[0]);
-      }
-
       // Fetch all visitors
       const { data: visitorData, error: visitorError } = await supabase
         .from('visitor_locations')
         .select('*')
         .order('visited_at', { ascending: false });
 
-      if (!visitorError && visitorData) {
+      if (visitorError) {
+        console.error('Error fetching visitors:', visitorError);
+        return;
+      }
+
+      if (visitorData) {
         setVisitors(visitorData);
 
         // Calculate stats
@@ -204,8 +176,8 @@ export default function Locations() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Location Tracking</h1>
-          <p className="mt-1 text-sm text-slate-400">Admin location & visitor analytics</p>
+          <h1 className="text-2xl font-bold text-white">Visitor Locations</h1>
+          <p className="mt-1 text-sm text-slate-400">Track where your website visitors are coming from</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -225,38 +197,54 @@ export default function Locations() {
         </div>
       </div>
 
-      {/* Admin Location Card */}
-      {adminLocation && (
-        <div className="mt-4 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/20">
-                <Globe className="h-5 w-5 text-orange-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white">Your Current Location</h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                  <span className="font-mono text-orange-400">{adminLocation.ip_address}</span>
-                  <span>•</span>
-                  <span className="text-white">{adminLocation.city}, {adminLocation.region}</span>
-                  <span>•</span>
-                  <span>{adminLocation.country}</span>
-                  <span>•</span>
-                  <span>{adminLocation.isp}</span>
-                  <span>•</span>
-                  <span className="text-emerald-400">ASN: {adminLocation.asn}</span>
-                  <span>•</span>
-                  <span className="text-slate-500">Updated: {formatDateTime(adminLocation.last_updated)}</span>
-                </div>
-              </div>
+      {/* Stats Cards */}
+      {stats && (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <Users className="h-5 w-5 text-blaze-400" />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2">
-                <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-              </span>
-              <span className="text-xs text-emerald-400">Live</span>
+            <div className="mt-2 text-2xl font-bold text-white">{stats.totalVisitors}</div>
+            <div className="text-xs text-slate-400">Total Visits</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <Eye className="h-5 w-5 text-emerald-400" />
             </div>
+            <div className="mt-2 text-2xl font-bold text-emerald-400">{stats.uniqueVisitors}</div>
+            <div className="text-xs text-slate-400">Unique Visitors</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <Globe className="h-5 w-5 text-amber-400" />
+            </div>
+            <div className="mt-2 text-2xl font-bold text-amber-400">{stats.totalCountries}</div>
+            <div className="text-xs text-slate-400">Countries</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <MapPin className="h-5 w-5 text-sky-400" />
+            </div>
+            <div className="mt-2 text-2xl font-bold text-sky-400">{stats.totalCities}</div>
+            <div className="text-xs text-slate-400">Cities</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <Smartphone className="h-5 w-5 text-purple-400" />
+            </div>
+            <div className="mt-2 text-2xl font-bold text-purple-400">
+              {Object.keys(stats.deviceBreakdown).length}
+            </div>
+            <div className="text-xs text-slate-400">Devices</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <Monitor className="h-5 w-5 text-pink-400" />
+            </div>
+            <div className="mt-2 text-2xl font-bold text-pink-400">
+              {Object.keys(stats.browserBreakdown).length}
+            </div>
+            <div className="text-xs text-slate-400">Browsers</div>
           </div>
         </div>
       )}
@@ -290,56 +278,6 @@ export default function Locations() {
       {/* Overview Tab */}
       {activeTab === 'overview' && stats && (
         <div className="mt-4 space-y-4">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <Users className="h-5 w-5 text-blaze-400" />
-              </div>
-              <div className="mt-2 text-2xl font-bold text-white">{stats.totalVisitors}</div>
-              <div className="text-xs text-slate-400">Total Visits</div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <Eye className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div className="mt-2 text-2xl font-bold text-emerald-400">{stats.uniqueVisitors}</div>
-              <div className="text-xs text-slate-400">Unique Visitors</div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <Globe className="h-5 w-5 text-amber-400" />
-              </div>
-              <div className="mt-2 text-2xl font-bold text-amber-400">{stats.totalCountries}</div>
-              <div className="text-xs text-slate-400">Countries</div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <MapPin className="h-5 w-5 text-sky-400" />
-              </div>
-              <div className="mt-2 text-2xl font-bold text-sky-400">{stats.totalCities}</div>
-              <div className="text-xs text-slate-400">Cities</div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <Smartphone className="h-5 w-5 text-purple-400" />
-              </div>
-              <div className="mt-2 text-2xl font-bold text-purple-400">
-                {Object.keys(stats.deviceBreakdown).length}
-              </div>
-              <div className="text-xs text-slate-400">Devices</div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <Monitor className="h-5 w-5 text-pink-400" />
-              </div>
-              <div className="mt-2 text-2xl font-bold text-pink-400">
-                {Object.keys(stats.browserBreakdown).length}
-              </div>
-              <div className="text-xs text-slate-400">Browsers</div>
-            </div>
-          </div>
-
           {/* Top Countries & Device Breakdown */}
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Top Countries */}
