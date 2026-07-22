@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Rocket, ShieldCheck, Target, Flame } from 'lucide-react';
-import { services, portfolio, testimonials, blogPosts } from '../data';
+import { supabase } from '../lib/supabase';
+import type { Blog, Project, Service, Testimonial } from '../lib/types';
 import Hero from '../components/Hero';
 import SectionHeading from '../components/ui/SectionHeading';
 import ServiceCard from '../components/ui/ServiceCard';
@@ -10,6 +12,16 @@ import BlogCard from '../components/ui/BlogCard';
 import CTA from '../components/ui/CTA';
 import { useReveal } from '../hooks/useReveal';
 
+interface PublicBlog extends Blog {
+  read_time?: string;
+}
+
+function estimateReadTime(content: string | null): string {
+  if (!content) return '1 min read';
+  const words = content.trim().split(/\s+/).length;
+  return `${Math.max(1, Math.round(words / 200))} min read`;
+}
+
 const values = [
   { icon: Rocket, title: 'Speed as a Standard', text: 'We ship fast without cutting corners — lean processes, modern tooling, and reusable architecture.' },
   { icon: ShieldCheck, title: 'Built to be Reliable', text: 'Security, testing, and infrastructure baked in from day one. Software you can trust in production.' },
@@ -18,6 +30,52 @@ const values = [
 
 export default function Home() {
   const { ref: introRef, visible: introVisible } = useReveal();
+
+  const [services, setServices] = useState<Service[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [blogPosts, setBlogPosts] = useState<PublicBlog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const [servicesRes, projectsRes, testimonialsRes, blogsRes] = await Promise.all([
+        supabase
+          .from('services')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: true })
+          .limit(3),
+        supabase
+          .from('projects')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('testimonials')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(2),
+        supabase
+          .from('blogs')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(3),
+      ]);
+
+      if (!servicesRes.error && servicesRes.data) setServices(servicesRes.data);
+      if (!projectsRes.error && projectsRes.data) setProjects(projectsRes.data);
+      if (!testimonialsRes.error && testimonialsRes.data) setTestimonials(testimonialsRes.data);
+      if (!blogsRes.error && blogsRes.data) {
+        setBlogPosts(blogsRes.data.map((b) => ({ ...b, read_time: estimateReadTime(b.content) })));
+      }
+
+      setLoading(false);
+    })();
+  }, []);
 
   return (
     <>
@@ -77,11 +135,26 @@ export default function Home() {
             title={<>Three core services, <span className="text-gradient">one reliable partner</span></>}
             subtitle="From custom software to network infrastructure to career-changing courses — Codraze covers the full technology lifecycle."
           />
-          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {services.slice(0, 3).map((s, i) => (
-              <ServiceCard key={s.title} {...s} delay={i * 100} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="mt-14 flex h-40 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-edge/20 border-t-blaze-500" />
+            </div>
+          ) : services.length === 0 ? (
+            <p className="mt-14 text-center text-ink-muted">No services available yet.</p>
+          ) : (
+            <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {services.map((s, i) => (
+                <ServiceCard
+                  key={s.id}
+                  title={s.title}
+                  description={s.description || ''}
+                  icon={s.icon}
+                  points={s.points ?? []}
+                  delay={i * 100}
+                />
+              ))}
+            </div>
+          )}
           <div className="mt-10 text-center">
             <Link to="/services" className="btn-ghost">
               View All Services
@@ -99,11 +172,28 @@ export default function Home() {
             title={<>Projects we're <span className="text-gradient">proud of</span></>}
             subtitle="A selection of platforms, apps, and systems we've designed and shipped for clients across industries."
           />
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {portfolio.slice(0, 3).map((p, i) => (
-              <ProjectCard key={p.name} {...p} delay={i * 80} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="mt-14 flex h-40 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-edge/20 border-t-blaze-500" />
+            </div>
+          ) : projects.length === 0 ? (
+            <p className="mt-14 text-center text-ink-muted">No projects published yet.</p>
+          ) : (
+            <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((p, i) => (
+                <ProjectCard
+                  key={p.id}
+                  name={p.title}
+                  category="Project"
+                  image={p.cover_image_url || 'https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg?auto=compress&cs=tinysrgb&w=800'}
+                  description={p.description || ''}
+                  tags={p.tech_stack ?? []}
+                  link={p.project_url || '#'}
+                  delay={i * 80}
+                />
+              ))}
+            </div>
+          )}
           <div className="mt-10 text-center">
             <Link to="/portfolio" className="btn-ghost">
               Explore Portfolio
@@ -121,11 +211,27 @@ export default function Home() {
             title={<>Loved by clients <span className="text-gradient">& students</span></>}
             subtitle="Don't take our word for it — here's what the people we've worked with have to say."
           />
-          <div className="mt-14 grid gap-6 md:grid-cols-2">
-            {testimonials.slice(0, 2).map((t, i) => (
-              <TestimonialCard key={t.name} {...t} delay={i * 90} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="mt-14 flex h-40 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-edge/20 border-t-blaze-500" />
+            </div>
+          ) : testimonials.length === 0 ? (
+            <p className="mt-14 text-center text-ink-muted">No testimonials yet.</p>
+          ) : (
+            <div className="mt-14 grid gap-6 md:grid-cols-2">
+              {testimonials.map((t, i) => (
+                <TestimonialCard
+                  key={t.id}
+                  name={t.name}
+                  role={t.role || ''}
+                  image={t.image_url || ''}
+                  quote={t.quote}
+                  rating={t.rating}
+                  delay={i * 90}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -137,11 +243,30 @@ export default function Home() {
             title={<>Insights & <span className="text-gradient">stories</span></>}
             subtitle="Articles on development, networking, design, and career growth from the Codraze team."
           />
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {blogPosts.slice(0, 3).map((p, i) => (
-              <BlogCard key={p.title} {...p} delay={i * 80} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="mt-14 flex h-40 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-edge/20 border-t-blaze-500" />
+            </div>
+          ) : blogPosts.length === 0 ? (
+            <p className="mt-14 text-center text-ink-muted">No blog posts published yet. Check back soon!</p>
+          ) : (
+            <div className="mt-14 grid gap-6 md:grid-cols-3">
+              {blogPosts.map((p, i) => (
+                <BlogCard
+                  key={p.id}
+                  title={p.title}
+                  excerpt={p.excerpt || ''}
+                  image={p.cover_image_url || 'https://images.pexels.com/photos/1181271/pexels-photo-1181271.jpeg?auto=compress&cs=tinysrgb&w=800'}
+                  author="Codraze Team"
+                  date={new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  category="Article"
+                  readTime={p.read_time || '5 min read'}
+                  slug={p.slug}
+                  delay={i * 80}
+                />
+              ))}
+            </div>
+          )}
           <div className="mt-10 text-center">
             <Link to="/blog" className="btn-ghost">
               Read Our Blog
@@ -151,7 +276,7 @@ export default function Home() {
         </div>
       </section>
 
-      <CTA />
+     
     </>
   );
 }

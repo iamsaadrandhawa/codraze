@@ -28,8 +28,8 @@ export default function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-edge/10 bg-surface-base/80 backdrop-blur-xl'
-          : 'border-b border-transparent bg-transparent'
+          ? 'border-b border-edge/30 bg-surface-base/80 backdrop-blur-sm'
+          : 'border-b border-edge/30 bg-transparent '
       }`}
     >
       <nav className="container-px flex h-16 items-center justify-between lg:h-20">

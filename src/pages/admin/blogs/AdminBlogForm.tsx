@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, X } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import type { Blog, BlogInput, BlogStatus } from '../../../lib/types';
 import { slugify } from '../../../lib/utils';
@@ -20,6 +20,8 @@ export default function AdminBlogForm() {
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState<BlogStatus>('draft');
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -41,6 +43,7 @@ export default function AdminBlogForm() {
       setExcerpt(b.excerpt ?? '');
       setContent(b.content ?? '');
       setCoverImageUrl(b.cover_image_url ?? '');
+      setTags(b.tags ?? []);
       setStatus(b.status);
       setLoading(false);
     })();
@@ -51,6 +54,32 @@ export default function AdminBlogForm() {
     if (!slugTouched) setSlug(slugify(val));
   };
 
+  const normalizeTag = (raw: string) => raw.trim().toLowerCase().replace(/^#+/, '').replace(/\s+/g, '-');
+
+  const addTag = (raw: string) => {
+    const clean = normalizeTag(raw);
+    if (!clean) return;
+    if (tags.includes(clean)) {
+      setTagInput('');
+      return;
+    }
+    setTags((prev) => [...prev, clean]);
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const handleTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(tagInput);
+    } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+      removeTag(tags[tags.length - 1]);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -59,12 +88,15 @@ export default function AdminBlogForm() {
       return;
     }
     setSaving(true);
+    // catch any tag left sitting in the input box
+    const finalTags = tagInput.trim() ? [...tags, normalizeTag(tagInput)] : tags;
     const payload: BlogInput = {
       title: title.trim(),
       slug: slug.trim(),
       excerpt: excerpt.trim() || null,
       content: content.trim() || null,
       cover_image_url: coverImageUrl.trim() || null,
+      tags: finalTags,
       status,
     };
     let res;
@@ -126,6 +158,36 @@ export default function AdminBlogForm() {
           {coverImageUrl && (
             <img src={coverImageUrl} alt="Cover preview" className="mt-3 h-40 w-full rounded-lg object-cover" />
           )}
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="tags">Tags</label>
+          <div className={`${inputClass} flex flex-wrap items-center gap-2 py-2.5`}>
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 rounded-full bg-blaze-500/15 px-2.5 py-1 text-xs font-medium text-blaze-300"
+              >
+                #{tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="rounded-full p-0.5 hover:bg-blaze-500/25"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            <input
+              id="tags"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleTagKeyDown}
+              onBlur={() => tagInput.trim() && addTag(tagInput)}
+              placeholder={tags.length === 0 ? 'html, webdev, tutorial…' : 'Add another…'}
+              className="min-w-[120px] flex-1 border-none bg-transparent p-0 text-sm text-white outline-none placeholder-slate-500"
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-slate-500">Press Enter or comma to add a tag. Displayed on the post as #tag.</p>
         </div>
         <div>
           <label className={labelClass}>Status</label>

@@ -33,7 +33,9 @@ import AdminFaqForm from './pages/admin/faq/AdminFaqForm';
 import AdminRoles from './pages/admin/roles/AdminRoles';
 import AdminRoleForm from './pages/admin/roles/AdminRoleForm';
 import AdminUsers from './pages/admin/users/AdminUsers';
-
+import AdminPricing from './pages/admin/pricing/AdminPricing';
+import AdminSubscribers from './pages/admin/subscribers/AdminSubscriber';
+import Locations from './pages/admin/location/Locations';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => shouldShowSplash());
@@ -97,6 +99,13 @@ export default function App() {
                 <Route path="/admin/testimonials/:id" element={<AdminTestimonialForm />} />
               </Route>
 
+              <Route element={<AdminGuard tabKey="subscribers" />}>
+                <Route path="/admin/subscribers" element={<AdminSubscribers />} />
+              </Route>
+              <Route element={<AdminGuard tabKey="pricing" />}>
+                <Route path="/admin/pricing" element={<AdminPricing />} />
+              </Route>
+
               <Route element={<AdminGuard tabKey="faq" />}>
                 <Route path="/admin/faq" element={<AdminFaqs />} />
                 <Route path="/admin/faq/new" element={<AdminFaqForm />} />
@@ -112,8 +121,14 @@ export default function App() {
                 <Route path="/admin/roles" element={<AdminRoles />} />
                 <Route path="/admin/roles/new" element={<AdminRoleForm />} />
                 <Route path="/admin/roles/:id" element={<AdminRoleForm />} />
+                <Route path="/admin/location" element={<Locations/>} />
               </Route>
+
+           
+
+
             </Route>
+
           </Route>
 
           {/* /admin redirect */}

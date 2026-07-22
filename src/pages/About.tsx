@@ -128,13 +128,7 @@ export default function About() {
         </div>
       </section>
 
-      <CTA
-        title="Want to work with us?"
-        subtitle="Let's build something blazing fast together."
-        primaryLabel="Contact Us"
-        secondaryLabel="See Pricing"
-        secondaryTo="/pricing"
-      />
+     
     </>
   );
 }

@@ -8,6 +8,7 @@ export interface Blog {
   excerpt: string | null;
   content: string | null;
   cover_image_url: string | null;
+  tags: string[];
   status: BlogStatus;
   created_at: string;
   updated_at: string;
@@ -19,8 +20,10 @@ export interface BlogInput {
   excerpt?: string | null;
   content?: string | null;
   cover_image_url?: string | null;
+  tags?: string[];
   status: BlogStatus;
 }
+
 
 export interface Project {
   id: string;
@@ -194,6 +197,40 @@ export interface RoleInput {
   description?: string | null;
   tabs: string[];
   permissions: Record<ModuleKey, ModulePermissions>;
+}
+
+export interface PricingPlan {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: string;
+  period: string; // 'project' | 'month' | 'year' | 'quote'
+  features: string[];
+  cta_text: string;
+  cta_url: string | null;
+  is_featured: boolean;
+  is_active: boolean;
+  display_order: number;
+  status: string; // 'draft' | 'published' | 'archived'
+  created_at: string;
+  updated_at: string;
+}
+
+// =====================================================
+// SUBSCRIBER TYPES
+// =====================================================
+
+export interface Subscriber {
+  id: string;
+  email: string;
+  status: 'active' | 'inactive';
+  subscribed_at: string;
+  unsubscribed_at: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Profile {

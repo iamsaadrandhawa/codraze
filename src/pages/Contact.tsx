@@ -52,7 +52,7 @@ export default function Contact() {
   };
 
   const inputClass =
-    'w-full rounded-xl border border-edge/10 bg-surface-raised/60 px-4 py-3 text-sm text-ink-strong placeholder-ink-faint outline-none transition-all duration-200 focus:border-blaze-500/50 focus:bg-surface-raised focus:ring-2 focus:ring-blaze-500/20';
+    'w-full rounded-xl border border-edge/30 bg-surface-raised/60 px-4 py-3 text-sm text-ink-strong placeholder-ink-faint outline-none transition-all duration-200 focus:border-blaze-500/50 focus:bg-surface-raised focus:ring-2 focus:ring-blaze-500/20';
 
   return (
     <>
@@ -66,9 +66,9 @@ export default function Contact() {
         <div className="container-px">
           <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-5">
             {/* Form */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 border">
               <form onSubmit={handleSubmit} className="card space-y-5 p-6 sm:p-8">
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid gap-5 sm:grid-cols-2 5 ">
                   <div>
                     <label htmlFor="name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-muted">
                       Name
