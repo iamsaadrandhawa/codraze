@@ -5,8 +5,15 @@ import { supabase } from '../../../lib/supabase';
 import type { Blog } from '../../../lib/types';
 import { formatDate } from '../../../lib/utils';
 import ConfirmDialog from '../../../components/admin/ConfirmDialog';
+import { useAuth } from '../../../lib/auth';
+import { hasPermission } from '../../../lib/permissions';
 
 export default function AdminBlogs() {
+  const { profile, role } = useAuth();
+  const canCreate = hasPermission(profile, role, 'blogs', 'create');
+  const canUpdate = hasPermission(profile, role, 'blogs', 'update');
+  const canDelete = hasPermission(profile, role, 'blogs', 'delete');
+
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -34,9 +41,11 @@ export default function AdminBlogs() {
           <h1 className="text-2xl font-bold text-white">Blogs</h1>
           <p className="mt-1 text-sm text-slate-400">Manage your blog posts</p>
         </div>
-        <Link to="/admin/blogs/new" className="btn-primary">
-          <Plus className="h-4 w-4" /> New Blog
-        </Link>
+        {canCreate && (
+          <Link to="/admin/blogs/new" className="btn-primary">
+            <Plus className="h-4 w-4" /> New Blog
+          </Link>
+        )}
       </div>
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
@@ -48,9 +57,11 @@ export default function AdminBlogs() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <FileText className="h-10 w-10 text-slate-600" />
             <p className="mt-3 text-sm text-slate-400">No blogs yet</p>
-            <Link to="/admin/blogs/new" className="mt-4 text-sm font-medium text-blaze-400 hover:text-blaze-300">
-              Create your first blog →
-            </Link>
+            {canCreate && (
+              <Link to="/admin/blogs/new" className="mt-4 text-sm font-medium text-blaze-400 hover:text-blaze-300">
+                Create your first blog →
+              </Link>
+            )}
           </div>
         ) : (
           <table className="w-full text-left text-sm">
@@ -59,7 +70,7 @@ export default function AdminBlogs() {
                 <th className="px-5 py-3 font-medium">Title</th>
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="hidden px-5 py-3 font-medium sm:table-cell">Created</th>
-                <th className="px-5 py-3 text-right font-medium">Actions</th>
+                {(canUpdate || canDelete) && <th className="px-5 py-3 text-right font-medium">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -77,22 +88,28 @@ export default function AdminBlogs() {
                     </span>
                   </td>
                   <td className="hidden px-5 py-3.5 text-slate-400 sm:table-cell">{formatDate(b.created_at)}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        to={`/admin/blogs/${b.id}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition-colors hover:border-blaze-500/50 hover:text-blaze-400"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                      <button
-                        onClick={() => setDeleteId(b.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition-colors hover:border-red-500/50 hover:text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
+                  {(canUpdate || canDelete) && (
+                    <td className="px-5 py-3.5">
+                      <div className="flex justify-end gap-2">
+                        {canUpdate && (
+                          <Link
+                            to={`/admin/blogs/${b.id}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition-colors hover:border-blaze-500/50 hover:text-blaze-400"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => setDeleteId(b.id)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition-colors hover:border-red-500/50 hover:text-red-400"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

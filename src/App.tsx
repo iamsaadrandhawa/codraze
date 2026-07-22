@@ -22,6 +22,18 @@ import AdminBlogForm from './pages/admin/blogs/AdminBlogForm';
 import AdminProjects from './pages/admin/projects/AdminProjects';
 import AdminProjectForm from './pages/admin/projects/AdminProjectForm';
 import AdminContacts from './pages/admin/AdminContacts';
+import AdminServices from './pages/admin/services/AdminServices';
+import AdminServiceForm from './pages/admin/services/AdminServiceForm'
+import AdminCourses from './pages/admin/courses/AdminCourses';
+import AdminCourseForm from './pages/admin/courses/AdminCourseForm';
+import AdminTestimonials from './pages/admin/testimonials/AdminTestimonials';
+import AdminTestimonialForm from './pages/admin/testimonials/AdminTestimonialForm';
+import AdminFaqs from './pages/admin/faq/AdminFaq';
+import AdminFaqForm from './pages/admin/faq/AdminFaqForm';
+import AdminRoles from './pages/admin/roles/AdminRoles';
+import AdminRoleForm from './pages/admin/roles/AdminRoleForm';
+import AdminUsers from './pages/admin/users/AdminUsers';
+
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => shouldShowSplash());
@@ -51,14 +63,56 @@ export default function App() {
           {/* Admin protected */}
           <Route element={<AdminGuard />}>
             <Route element={<AdminLayout />}>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/blogs" element={<AdminBlogs />} />
-              <Route path="/admin/blogs/new" element={<AdminBlogForm />} />
-              <Route path="/admin/blogs/:id" element={<AdminBlogForm />} />
-              <Route path="/admin/projects" element={<AdminProjects />} />
-              <Route path="/admin/projects/new" element={<AdminProjectForm />} />
-              <Route path="/admin/projects/:id" element={<AdminProjectForm />} />
-              <Route path="/admin/contacts" element={<AdminContacts />} />
+              <Route element={<AdminGuard tabKey="dashboard" />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="blogs" />}>
+                <Route path="/admin/blogs" element={<AdminBlogs />} />
+                <Route path="/admin/blogs/new" element={<AdminBlogForm />} />
+                <Route path="/admin/blogs/:id" element={<AdminBlogForm />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="projects" />}>
+                <Route path="/admin/projects" element={<AdminProjects />} />
+                <Route path="/admin/projects/new" element={<AdminProjectForm />} />
+                <Route path="/admin/projects/:id" element={<AdminProjectForm />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="services" />}>
+                <Route path="/admin/services" element={<AdminServices />} />
+                <Route path="/admin/services/new" element={<AdminServiceForm />} />
+                <Route path="/admin/services/:id" element={<AdminServiceForm />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="courses" />}>
+                <Route path="/admin/courses" element={<AdminCourses />} />
+                <Route path="/admin/courses/new" element={<AdminCourseForm />} />
+                <Route path="/admin/courses/:id" element={<AdminCourseForm />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="testimonials" />}>
+                <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+                <Route path="/admin/testimonials/new" element={<AdminTestimonialForm />} />
+                <Route path="/admin/testimonials/:id" element={<AdminTestimonialForm />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="faq" />}>
+                <Route path="/admin/faq" element={<AdminFaqs />} />
+                <Route path="/admin/faq/new" element={<AdminFaqForm />} />
+                <Route path="/admin/faq/:id" element={<AdminFaqForm />} />
+              </Route>
+
+              <Route element={<AdminGuard tabKey="contacts" />}>
+                <Route path="/admin/contacts" element={<AdminContacts />} />
+              </Route>
+
+              <Route element={<AdminGuard superAdminOnly />}>
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/roles" element={<AdminRoles />} />
+                <Route path="/admin/roles/new" element={<AdminRoleForm />} />
+                <Route path="/admin/roles/:id" element={<AdminRoleForm />} />
+              </Route>
             </Route>
           </Route>
 

@@ -43,6 +43,169 @@ export interface ProjectInput {
   project_url?: string | null;
   status: ProjectStatus;
 }
+export type ServiceStatus = 'draft' | 'published';
+
+export interface Service {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  icon: string;
+  points: string[];
+  status: ServiceStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceInput {
+  title: string;
+  slug: string;
+  description?: string | null;
+  icon?: string;
+  points?: string[];
+  status: ServiceStatus;
+}
+export type CourseStatus = 'draft' | 'published';
+export type CourseLevelKey = 'beginner' | 'intermediate' | 'advanced';
+
+export interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  icon: string;
+  level: string;
+  level_key: CourseLevelKey;
+  duration: string | null;
+  topics: string[];
+  status: CourseStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourseInput {
+  title: string;
+  slug: string;
+  description?: string | null;
+  icon?: string;
+  level?: string;
+  level_key: CourseLevelKey;
+  duration?: string | null;
+  topics?: string[];
+  status: CourseStatus;
+}
+export type TestimonialStatus = 'draft' | 'published';
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string | null;
+  image_url: string | null;
+  quote: string;
+  rating: number;
+  status: TestimonialStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestimonialInput {
+  name: string;
+  role?: string | null;
+  image_url?: string | null;
+  quote: string;
+  rating: number;
+  status: TestimonialStatus;
+}
+
+export type FaqStatus = 'draft' | 'published';
+
+export interface Faq {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number;
+  status: FaqStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FaqInput {
+  question: string;
+  answer: string;
+  display_order?: number;
+  status: FaqStatus;
+} 
+export type ProfileStatus = 'active' | 'disabled';
+
+export type ModuleKey = 'blogs' | 'projects' | 'services' | 'courses' | 'testimonials' | 'faq' | 'contacts';
+
+export interface ModulePermissions {
+  create: boolean;
+  read: boolean;
+  update: boolean;
+  delete: boolean;
+}
+
+export const MODULE_LABELS: Record<ModuleKey, string> = {
+  blogs: 'Blogs',
+  projects: 'Projects',
+  services: 'Services',
+  courses: 'Courses',
+  testimonials: 'Testimonials',
+  faq: 'FAQ',
+  contacts: 'Contacts',
+};
+
+export const TAB_OPTIONS = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'blogs', label: 'Blogs' },
+  { key: 'projects', label: 'Projects' },
+  { key: 'services', label: 'Services' },
+  { key: 'courses', label: 'Courses' },
+  { key: 'testimonials', label: 'Testimonials' },
+  { key: 'faq', label: 'FAQ' },
+  { key: 'contacts', label: 'Contacts' },
+];
+
+export function emptyPermissions(): Record<ModuleKey, ModulePermissions> {
+  return {
+    blogs: { create: false, read: false, update: false, delete: false },
+    projects: { create: false, read: false, update: false, delete: false },
+    services: { create: false, read: false, update: false, delete: false },
+    courses: { create: false, read: false, update: false, delete: false },
+    testimonials: { create: false, read: false, update: false, delete: false },
+    faq: { create: false, read: false, update: false, delete: false },
+    contacts: { create: false, read: false, update: false, delete: false },
+  };
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string | null;
+  tabs: string[];
+  permissions: Record<ModuleKey, ModulePermissions>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoleInput {
+  name: string;
+  description?: string | null;
+  tabs: string[];
+  permissions: Record<ModuleKey, ModulePermissions>;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role_id: string | null;
+  is_super_admin: boolean;
+  status: ProfileStatus;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface ContactSubmission {
   id: string;
