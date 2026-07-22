@@ -140,8 +140,8 @@ export default function Navbar() {
                 className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/30 bg-emerald-500/30 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-500/15 hover:-translate-y-0.5 dark:text-emerald-300"
               >
                 <MessageCircle className="h-5 w-5" />
-                Chat on WhatsApp
-              </a>
+                  Quick Chat
+                               </a>
           </li>
         </ul>
       </div>
