@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './lib/auth';
+import { visitorTracker } from './lib/visitorTracker';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -35,17 +36,28 @@ import AdminRoleForm from './pages/admin/roles/AdminRoleForm';
 import AdminUsers from './pages/admin/users/AdminUsers';
 import AdminPricing from './pages/admin/pricing/AdminPricing';
 import AdminSubscribers from './pages/admin/subscribers/AdminSubscriber';
+// Import Locations page (not VisitorTracker)
 import Locations from './pages/admin/location/Locations';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => shouldShowSplash());
+
+  // Track visitor on app load - only once
+  useEffect(() => {
+    console.log('📍 App initialized - tracking visitor');
+    const timer = setTimeout(() => {
+      visitorTracker.track();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <AuthProvider>
       {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
       <BrowserRouter>
         <Routes>
-          {/* Public site */}
+          {/* Public site - VisitorTracker is inside MainLayout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -102,6 +114,7 @@ export default function App() {
               <Route element={<AdminGuard tabKey="subscribers" />}>
                 <Route path="/admin/subscribers" element={<AdminSubscribers />} />
               </Route>
+
               <Route element={<AdminGuard tabKey="pricing" />}>
                 <Route path="/admin/pricing" element={<AdminPricing />} />
               </Route>
@@ -116,19 +129,18 @@ export default function App() {
                 <Route path="/admin/contacts" element={<AdminContacts />} />
               </Route>
 
+              {/* Location page - displays visitor data */}
+              <Route element={<AdminGuard tabKey="location" />}>
+                <Route path="/admin/location" element={<Locations />} />
+              </Route>
+
               <Route element={<AdminGuard superAdminOnly />}>
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/roles" element={<AdminRoles />} />
                 <Route path="/admin/roles/new" element={<AdminRoleForm />} />
                 <Route path="/admin/roles/:id" element={<AdminRoleForm />} />
-                <Route path="/admin/location" element={<Locations/>} />
               </Route>
-
-           
-
-
             </Route>
-
           </Route>
 
           {/* /admin redirect */}

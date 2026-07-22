@@ -10,7 +10,7 @@ export default function MainLayout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Visitor Tracker - tracks all visitors on public pages */}
+      {/* Visitor Tracker - automatically tracks all visitors */}
       <VisitorTracker />
       
       <ScrollToTop />
