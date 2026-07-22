@@ -8,7 +8,8 @@ import {
   MousePointer, Smartphone, Monitor,
   Chrome, Apple, Terminal, Shield, Layers,
   ChevronDown, ChevronRight, ExternalLink,
-  Info, User, Link as LinkIcon, Calendar
+  Info, User, Link as LinkIcon, Calendar,
+  Satellite, Crosshair, Navigation, Target
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatDateTime } from '../../../lib/utils';
@@ -25,6 +26,8 @@ interface VisitorLocation {
   timezone: string;
   latitude: number;
   longitude: number;
+  accuracy: 'gps' | 'ip' | 'unknown';
+  gps_available: boolean;
   user_agent: string;
   referrer: string;
   page_url: string;
@@ -44,6 +47,8 @@ interface Stats {
   browserBreakdown: { [key: string]: number };
   osBreakdown: { [key: string]: number };
   topCountries: { country: string; count: number }[];
+  accuracyBreakdown: { [key: string]: number };
+  gpsAvailable: number;
   recentVisitors: VisitorLocation[];
 }
 
@@ -54,8 +59,10 @@ export default function Locations() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCountry, setFilterCountry] = useState<string>('All');
   const [filterDevice, setFilterDevice] = useState<string>('All');
+  const [filterAccuracy, setFilterAccuracy] = useState<string>('All');
   const [countries, setCountries] = useState<string[]>([]);
   const [devices, setDevices] = useState<string[]>([]);
+  const [accuracyOptions, setAccuracyOptions] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'visitors'>('overview');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -88,6 +95,8 @@ export default function Locations() {
         const browserCount: { [key: string]: number } = {};
         const osCount: { [key: string]: number } = {};
         const countryCount: { [key: string]: number } = {};
+        const accuracyCount: { [key: string]: number } = {};
+        let gpsAvailable = 0;
 
         visitorData.forEach(v => {
           deviceCount[v.device_type] = (deviceCount[v.device_type] || 0) + 1;
@@ -95,6 +104,12 @@ export default function Locations() {
           osCount[v.os] = (osCount[v.os] || 0) + 1;
           if (v.country && v.country !== 'Unknown') {
             countryCount[v.country] = (countryCount[v.country] || 0) + 1;
+          }
+          if (v.accuracy) {
+            accuracyCount[v.accuracy] = (accuracyCount[v.accuracy] || 0) + 1;
+          }
+          if (v.gps_available) {
+            gpsAvailable++;
           }
         });
 
@@ -112,11 +127,14 @@ export default function Locations() {
           browserBreakdown: browserCount,
           osBreakdown: osCount,
           topCountries: topCountries,
+          accuracyBreakdown: accuracyCount,
+          gpsAvailable: gpsAvailable,
           recentVisitors: visitorData.slice(0, 10)
         });
 
         setCountries(['All', ...Array.from(countrySet).sort()]);
         setDevices(['All', ...Object.keys(deviceCount).sort()]);
+        setAccuracyOptions(['All', ...Object.keys(accuracyCount).sort()]);
       }
 
     } catch (error) {
@@ -138,6 +156,32 @@ export default function Locations() {
     return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=12`;
   };
 
+  const getAccuracyBadge = (accuracy: string) => {
+    switch (accuracy) {
+      case 'gps':
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-400">
+            <Satellite className="h-3 w-3" />
+            GPS
+          </span>
+        );
+      case 'ip':
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-1 text-xs font-medium text-amber-400">
+            <Wifi className="h-3 w-3" />
+            IP
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-400">
+            <AlertCircle className="h-3 w-3" />
+            Unknown
+          </span>
+        );
+    }
+  };
+
   const filteredVisitors = visitors
     .filter(v => {
       const matchesSearch = 
@@ -149,17 +193,20 @@ export default function Locations() {
         v.os?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCountry = filterCountry === 'All' || v.country === filterCountry;
       const matchesDevice = filterDevice === 'All' || v.device_type === filterDevice;
-      return matchesSearch && matchesCountry && matchesDevice;
+      const matchesAccuracy = filterAccuracy === 'All' || v.accuracy === filterAccuracy;
+      return matchesSearch && matchesCountry && matchesDevice && matchesAccuracy;
     });
 
   const exportCSV = () => {
-    const headers = ['IP', 'City', 'Region', 'Country', 'ISP', 'Device', 'Browser', 'OS', 'Referrer', 'Page', 'Visited At'];
+    const headers = ['IP', 'City', 'Region', 'Country', 'ISP', 'Accuracy', 'GPS Available', 'Device', 'Browser', 'OS', 'Referrer', 'Page', 'Visited At'];
     const rows = filteredVisitors.map(v => [
       v.ip_address,
       v.city,
       v.region,
       v.country,
       v.isp,
+      v.accuracy || 'unknown',
+      v.gps_available ? 'Yes' : 'No',
       v.device_type,
       v.browser,
       v.os,
@@ -214,54 +261,96 @@ export default function Locations() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between">
-              <Users className="h-5 w-5 text-blaze-400" />
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <Users className="h-5 w-5 text-blaze-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-white">{stats.totalVisitors}</div>
+              <div className="text-xs text-slate-400">Total Visits</div>
             </div>
-            <div className="mt-2 text-2xl font-bold text-white">{stats.totalVisitors}</div>
-            <div className="text-xs text-slate-400">Total Visits</div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <Eye className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-emerald-400">{stats.uniqueVisitors}</div>
+              <div className="text-xs text-slate-400">Unique Visitors</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <Globe className="h-5 w-5 text-amber-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-amber-400">{stats.totalCountries}</div>
+              <div className="text-xs text-slate-400">Countries</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <MapPin className="h-5 w-5 text-sky-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-sky-400">{stats.totalCities}</div>
+              <div className="text-xs text-slate-400">Cities</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <Satellite className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-emerald-400">
+                {stats.accuracyBreakdown?.gps || 0}
+              </div>
+              <div className="text-xs text-slate-400">GPS Location</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <Wifi className="h-5 w-5 text-amber-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-amber-400">
+                {stats.accuracyBreakdown?.ip || 0}
+              </div>
+              <div className="text-xs text-slate-400">IP Location</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <Crosshair className="h-5 w-5 text-sky-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-sky-400">
+                {stats.gpsAvailable || 0}
+              </div>
+              <div className="text-xs text-slate-400">GPS Available</div>
+            </div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between">
-              <Eye className="h-5 w-5 text-emerald-400" />
+
+          {/* Accuracy Legend */}
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+              <Target className="h-4 w-4 text-blaze-400" />
+              Location Accuracy Types
+            </h3>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-400">
+                  <Satellite className="h-3 w-3" />
+                  GPS
+                </span>
+                <span className="text-xs text-slate-400">Most accurate (5-10 meters)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-medium text-amber-400">
+                  <Wifi className="h-3 w-3" />
+                  IP
+                </span>
+                <span className="text-xs text-slate-400">City/Region level</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-3 py-1 text-xs font-medium text-red-400">
+                  <AlertCircle className="h-3 w-3" />
+                  Unknown
+                </span>
+                <span className="text-xs text-slate-400">Location not available</span>
+              </div>
             </div>
-            <div className="mt-2 text-2xl font-bold text-emerald-400">{stats.uniqueVisitors}</div>
-            <div className="text-xs text-slate-400">Unique Visitors</div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between">
-              <Globe className="h-5 w-5 text-amber-400" />
-            </div>
-            <div className="mt-2 text-2xl font-bold text-amber-400">{stats.totalCountries}</div>
-            <div className="text-xs text-slate-400">Countries</div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between">
-              <MapPin className="h-5 w-5 text-sky-400" />
-            </div>
-            <div className="mt-2 text-2xl font-bold text-sky-400">{stats.totalCities}</div>
-            <div className="text-xs text-slate-400">Cities</div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between">
-              <Smartphone className="h-5 w-5 text-purple-400" />
-            </div>
-            <div className="mt-2 text-2xl font-bold text-purple-400">
-              {Object.keys(stats.deviceBreakdown).length}
-            </div>
-            <div className="text-xs text-slate-400">Devices</div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between">
-              <Monitor className="h-5 w-5 text-pink-400" />
-            </div>
-            <div className="mt-2 text-2xl font-bold text-pink-400">
-              {Object.keys(stats.browserBreakdown).length}
-            </div>
-            <div className="text-xs text-slate-400">Browsers</div>
-          </div>
-        </div>
+        </>
       )}
 
       {/* Tabs */}
@@ -378,7 +467,10 @@ export default function Locations() {
                 <div key={v.id} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
                   <div>
                     <div className="text-sm font-medium text-white">{v.city}, {v.country}</div>
-                    <div className="text-xs text-slate-500">{v.device_type} • {v.browser}</div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      {v.accuracy === 'gps' && <Satellite className="h-3 w-3 text-emerald-400" />}
+                      {v.device_type} • {v.browser}
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-slate-500">{formatDateTime(v.visited_at)}</div>
@@ -419,6 +511,15 @@ export default function Locations() {
                   <option key={d} value={d} className="bg-slate-800">{d}</option>
                 ))}
               </select>
+              <select
+                value={filterAccuracy}
+                onChange={(e) => setFilterAccuracy(e.target.value)}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white outline-none"
+              >
+                {accuracyOptions.map(a => (
+                  <option key={a} value={a} className="bg-slate-800">{a}</option>
+                ))}
+              </select>
             </div>
 
             <div className="relative flex-1 max-w-xs">
@@ -447,6 +548,7 @@ export default function Locations() {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400 w-8"></th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">IP</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Location</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Accuracy</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">ISP</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Device</th>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">Browser / OS</th>
@@ -457,7 +559,7 @@ export default function Locations() {
                 <tbody className="divide-y divide-white/5">
                   {filteredVisitors.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
+                      <td colSpan={9} className="px-4 py-8 text-center text-slate-400">
                         No visitors found
                       </td>
                     </tr>
@@ -482,7 +584,18 @@ export default function Locations() {
                             <div>
                               <div className="text-sm text-white">{v.city}</div>
                               <div className="text-xs text-slate-400">{v.country}</div>
+                              {v.latitude && v.longitude && v.latitude !== 0 && v.longitude !== 0 && (
+                                <div className="text-[10px] text-slate-500">
+                                  {v.latitude.toFixed(4)}, {v.longitude.toFixed(4)}
+                                </div>
+                              )}
                             </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {getAccuracyBadge(v.accuracy)}
+                            {v.gps_available && (
+                              <div className="text-[10px] text-emerald-500 mt-0.5">GPS Available</div>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-300 max-w-[150px] truncate">{v.isp}</td>
                           <td className="px-4 py-3 text-sm text-slate-300">{v.device_type}</td>
@@ -515,8 +628,8 @@ export default function Locations() {
                         {/* Expanded Row */}
                         {expandedRow === v.id && (
                           <tr>
-                            <td colSpan={8} className="px-4 py-4 bg-white/5">
-                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <td colSpan={9} className="px-4 py-4 bg-white/5">
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                                 {/* Location Details */}
                                 <div className="space-y-1">
                                   <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
@@ -526,10 +639,31 @@ export default function Locations() {
                                   <div className="text-xs text-slate-400">{v.country} ({v.country_code})</div>
                                   {v.latitude && v.longitude && v.latitude !== 0 && v.longitude !== 0 && (
                                     <div className="text-xs text-slate-500">
-                                      Lat: {v.latitude.toFixed(4)}, Lon: {v.longitude.toFixed(4)}
+                                      Lat: {v.latitude.toFixed(6)}, Lon: {v.longitude.toFixed(6)}
                                     </div>
                                   )}
                                   <div className="text-xs text-slate-500">Timezone: {v.timezone}</div>
+                                </div>
+
+                                {/* Accuracy Details */}
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                    <Target className="h-3 w-3" /> Accuracy
+                                  </h4>
+                                  <div>{getAccuracyBadge(v.accuracy)}</div>
+                                  <div className="text-xs text-slate-400">
+                                    {v.gps_available ? (
+                                      <span className="text-emerald-400">✓ GPS was available</span>
+                                    ) : (
+                                      <span className="text-amber-400">No GPS data</span>
+                                    )}
+                                  </div>
+                                  {v.accuracy === 'gps' && (
+                                    <div className="text-xs text-emerald-400">High accuracy (5-10m)</div>
+                                  )}
+                                  {v.accuracy === 'ip' && (
+                                    <div className="text-xs text-amber-400">City/Region level</div>
+                                  )}
                                 </div>
 
                                 {/* ISP Details */}
@@ -603,7 +737,7 @@ export default function Locations() {
                                   <button
                                     onClick={() => {
                                       navigator.clipboard.writeText(
-                                        `${v.city}, ${v.country}\nLat: ${v.latitude}, Lon: ${v.longitude}\nIP: ${v.ip_address}`
+                                        `${v.city}, ${v.country}\nLat: ${v.latitude}, Lon: ${v.longitude}\nIP: ${v.ip_address}\nAccuracy: ${v.accuracy}`
                                       );
                                     }}
                                     className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/20 transition-colors"

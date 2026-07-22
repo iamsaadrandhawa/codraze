@@ -11,6 +11,8 @@ interface VisitorInfo {
   timezone: string;
   lat: number;
   lon: number;
+  accuracy: 'gps' | 'ip' | 'wifi' | 'unknown';
+  gps_available: boolean;
   user_agent: string;
   referrer: string;
   page_url: string;
@@ -31,13 +33,11 @@ class VisitorTrackerService {
   }
 
   async track() {
-    // Prevent multiple simultaneous tracking attempts
     if (this.isTracking) {
       console.log('📍 Already tracking...');
       return;
     }
 
-    // Check if already tracked in this session
     const sessionId = sessionStorage.getItem('visitor_tracked');
     if (sessionId) {
       console.log('📍 Visitor already tracked this session');
@@ -59,9 +59,36 @@ class VisitorTrackerService {
 
       console.log('📍 IP detected:', ip);
 
-      // Get location data
-      const locationData = await this.getLocationData(ip);
+      // Try to get GPS location from browser (most accurate)
+      let gpsLocation = null;
+      let gpsAvailable = false;
       
+      try {
+        gpsLocation = await this.getBrowserLocation();
+        if (gpsLocation) {
+          gpsAvailable = true;
+          console.log('📍 GPS location detected:', gpsLocation);
+        }
+      } catch (error) {
+        console.log('📍 GPS not available, using IP geolocation');
+      }
+
+      // Get location data
+      let locationData;
+      let accuracy: 'gps' | 'ip' | 'wifi' | 'unknown' = 'unknown';
+      
+      if (gpsLocation && gpsAvailable) {
+        // Use GPS coordinates with reverse geocoding for city/country
+        locationData = await this.getLocationFromGPS(gpsLocation.lat, gpsLocation.lon);
+        locationData.lat = gpsLocation.lat;
+        locationData.lon = gpsLocation.lon;
+        accuracy = 'gps';
+      } else {
+        // Use IP-based geolocation
+        locationData = await this.getIPLocationData(ip);
+        accuracy = locationData.accuracy || 'ip';
+      }
+
       // Get browser info
       const browserInfo = this.getBrowserInfo();
 
@@ -76,6 +103,8 @@ class VisitorTrackerService {
         timezone: locationData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         lat: locationData.lat || 0,
         lon: locationData.lon || 0,
+        accuracy: accuracy,
+        gps_available: gpsAvailable,
         user_agent: browserInfo.userAgent,
         referrer: document.referrer || 'Direct',
         page_url: window.location.href,
@@ -88,6 +117,10 @@ class VisitorTrackerService {
         ip: visitorData.ip,
         city: visitorData.city,
         country: visitorData.country,
+        accuracy: visitorData.accuracy,
+        gps_available: visitorData.gps_available,
+        lat: visitorData.lat,
+        lon: visitorData.lon,
         device: visitorData.device_type,
         browser: visitorData.browser
       });
@@ -95,15 +128,92 @@ class VisitorTrackerService {
       // Save to database
       await this.saveVisitorData(visitorData);
 
-      // Mark as tracked
       sessionStorage.setItem('visitor_tracked', 'true');
-      console.log('✅ Visitor tracked successfully!');
+      console.log(`✅ Visitor tracked successfully! (Accuracy: ${visitorData.accuracy})`);
 
     } catch (error) {
       console.error('❌ Error tracking visitor:', error);
     } finally {
       this.isTracking = false;
     }
+  }
+
+  private async getBrowserLocation(): Promise<{ lat: number; lon: number } | null> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude
+          });
+        },
+        () => {
+          resolve(null);
+        },
+        { 
+          timeout: 10000, 
+          enableHighAccuracy: true,
+          maximumAge: 0
+        }
+      );
+    });
+  }
+
+  private async getLocationFromGPS(lat: number, lon: number): Promise<{
+    city: string;
+    region: string;
+    country: string;
+    country_code: string;
+    isp: string;
+    org: string;
+    timezone: string;
+    lat: number;
+    lon: number;
+    accuracy: 'gps' | 'ip' | 'wifi' | 'unknown';
+  }> {
+    try {
+      // Reverse geocoding to get city/country from coordinates
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`,
+        { signal: AbortSignal.timeout(5000) }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          city: data.city || data.locality || 'Unknown',
+          region: data.principalSubdivision || 'Unknown',
+          country: data.countryName || 'Unknown',
+          country_code: data.countryCode || 'Unknown',
+          isp: 'GPS Location',
+          org: 'Browser Geolocation',
+          timezone: data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+          lat: lat,
+          lon: lon,
+          accuracy: 'gps'
+        };
+      }
+    } catch (error) {
+      console.warn('📍 Reverse geocoding failed:', error);
+    }
+
+    return {
+      city: 'Unknown',
+      region: 'Unknown',
+      country: 'Unknown',
+      country_code: 'Unknown',
+      isp: 'GPS Location',
+      org: 'Browser Geolocation',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      lat: lat,
+      lon: lon,
+      accuracy: 'gps'
+    };
   }
 
   private async getIP(): Promise<string | null> {
@@ -129,7 +239,6 @@ class VisitorTrackerService {
       }
     }
 
-    // Fallback: try httpbin
     try {
       const response = await fetch('https://httpbin.org/ip', { 
         signal: AbortSignal.timeout(5000)
@@ -145,7 +254,7 @@ class VisitorTrackerService {
     return null;
   }
 
-  private async getLocationData(ip: string): Promise<{
+  private async getIPLocationData(ip: string): Promise<{
     city: string;
     region: string;
     country: string;
@@ -155,6 +264,7 @@ class VisitorTrackerService {
     timezone: string;
     lat: number;
     lon: number;
+    accuracy: 'gps' | 'ip' | 'wifi' | 'unknown';
   }> {
     let geoData: any = null;
     let ispData: any = null;
@@ -222,7 +332,8 @@ class VisitorTrackerService {
       org: ispData?.org || geoData?.org || 'Unknown',
       timezone: geoData?.timezone || ispData?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       lat: parseFloat(geoData?.latitude) || parseFloat(ispData?.lat) || 0,
-      lon: parseFloat(geoData?.longitude) || parseFloat(ispData?.lon) || 0
+      lon: parseFloat(geoData?.longitude) || parseFloat(ispData?.lon) || 0,
+      accuracy: 'ip'
     };
   }
 
@@ -275,6 +386,8 @@ class VisitorTrackerService {
           timezone: data.timezone,
           latitude: data.lat,
           longitude: data.lon,
+          accuracy: data.accuracy,
+          gps_available: data.gps_available,
           user_agent: data.user_agent,
           referrer: data.referrer,
           page_url: data.page_url,
@@ -293,5 +406,4 @@ class VisitorTrackerService {
   }
 }
 
-// Export singleton instance
 export const visitorTracker = VisitorTrackerService.getInstance();
