@@ -369,10 +369,10 @@ export const contactInfo = [
 ];
 
 export const socials = [
-  { icon: 'Github', label: 'GitHub', href: '#' },
-  { icon: 'Linkedin', label: 'LinkedIn', href: '#' },
-  { icon: 'Twitter', label: 'Twitter', href: '#' },
-  { icon: 'Globe', label: 'Website', href: '#' },
+  { icon: 'Github', label: 'GitHub', href: 'https://github.com/codraze' },
+  { icon: 'Linkedin', label: 'LinkedIn', href: 'https://linkedin.com/company/codraze' },
+  { icon: 'Twitter', label: 'Twitter', href: 'https://x.com/codraze_' },
+  { icon: 'Globe', label: 'Website', href: 'https://codraze.vercel.app' },
 ];
 
 export const footerLinks = [
